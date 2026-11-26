@@ -1,5 +1,6 @@
 package com.office.vaccin;
 
+import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -20,13 +21,53 @@ public class VaccinController extends HttpServlet {
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		
-		response.getWriter().append("Served at: ").append(request.getContextPath());
+		String requestURI = request.getRequestURI();
+		String contextPath = request.getContextPath();
+		String command = requestURI.substring(contextPath.length());
+		
+		VaccinService vaccinService = null;
+		String nextPage = null;
+		
+		switch (command) {
+		case "/injection_registe_form.vac": 
+			
+			nextPage = generateView("registe_form");
+			
+			break;
+			
+		case "/injection_registe_confirm.vac":
+		
+			vaccinService = new VaccinService(new VaccinDao());
+			int resultForRegist = vaccinService.registeConfirm(request, response);
+			
+			nextPage = generateView("registe_result");
+			
+			break;
+			
+		case "/injection_list.vac":
+			
+			vaccinService = new VaccinService(new VaccinDao());
+			vaccinService.listup(request, response);
+			
+			nextPage = generateView("registed_list");
+			
+			break;
+		}
+		
+		RequestDispatcher dispatcher = request.getRequestDispatcher(nextPage);
+		dispatcher.forward(request, response);
+
 	}
 
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		request.setCharacterEncoding("UTF-8");
 		doGet(request, response);
+	}
+	
+	
+	private String generateView(String viewName) {
+		return "view/vaccin/" + viewName + ".jsp";
 	}
 
 }
